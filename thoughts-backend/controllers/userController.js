@@ -17,6 +17,18 @@ const registerUser = asyncHandler(async (req, res) => {
             throw new Error("Please fill all  fields to Register");
         }
 
+        // Check if the interests array has at least one interest
+        if (!interests || interests.length === 0) {
+            res.status(400);
+            throw new Error("At least one interest is required");
+        }
+    
+        // Check if the interests array has more than three interests
+        if (interests.length > 3) {
+            res.status(400);
+            throw new Error("Maximum of three interests allowed");
+        }
+
         // Check whether user is already existing
         const emailExists = await User.findOne({ email });
         const usernameExists = await User.findOne({ username });
