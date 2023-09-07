@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const connectDB = require("./config/dbConnection");
+const errorHandler = require("./middlewares/errorHandler");
 
 // Connect to DB
 connectDB();
@@ -10,11 +11,13 @@ const app = express();
 // Set the port number for the server to run on
 const port = process.env.PORT || 3001;
 
-// Listen for requests on the root route
-app.get("/", (req, res) => {
-    console.log("GET request received at '/' route");
-    res.send({ success: true, message: "Hello, from the Server..!" });
-});
+// Parse JSON request bodies
+app.use(express.json());
+
+// Use userRoutes for handling user-related API endpoints
+app.use("/api/users", require("./routes/userRoutes"));
+// Use errorHandler to handle client-server erros
+app.use(errorHandler);
 
 // Start the Express server and listen on the specified port
 app.listen(port, () => {
