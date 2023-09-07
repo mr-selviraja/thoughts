@@ -2,6 +2,7 @@ const asyncHandler = require("express-async-handler");
 const User = require("../models/UserModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const BlacklistedToken = require("../models/BlacklistedTokenModel");
 
 // @desc Register a new user
 // @route POST /api/users/register
@@ -121,4 +122,28 @@ const currentUser = asyncHandler(async (req, res) => {
     res.status(200).json({ success: "true", message: "User Authentication Successful", user: foundUser });
 });
 
-module.exports = { registerUser, loginUser, currentUser };
+// @desc Logout current user
+// @route POST /api/users/logout
+// @access PRIVATE
+const logoutUser = asyncHandler(async (req, res) => {
+    let authHeader = req.headers.authorization || req.headers.Authorization;
+
+    // Extract the token from the request headers
+    const token = authHeader.split(" ")[1];
+
+    // Check if the token is already blacklisted
+    const isTokenBlacklisted = await BlacklistedToken.findOne({ token });
+
+    // If the token is already blacklisted, acknowledge the client that user has logged out
+    if(isTokenBlacklisted) {
+        res.status(200).json({ message: "User Logout Successful" });
+    }
+
+    // If the token is not blacklisted, add it to the blacklist
+    await BlacklistedToken.create({ token });
+
+    // Respond with a success message
+    res.status(200).json({ message: "User Logout Successful" });
+});
+
+module.exports = { registerUser, loginUser, currentUser, logoutUser };
