@@ -90,7 +90,7 @@ const loginUser = asyncHandler(async (req, res) => {
         );
 
         // Acknowledge the client about the successful login and send the access token
-        res.status(200).json({ message: "User Login Successful", accessToken });
+        res.status(200).json({ success: true, message: "User Login Successful", accessToken });
     }
     // If no user found with given credentials
     else {
@@ -99,4 +99,26 @@ const loginUser = asyncHandler(async (req, res) => {
     }
 });
 
-module.exports = { registerUser, loginUser };
+const currentUser = asyncHandler(async (req, res) => {
+    // Fetch the user role from DB, using req.user which was set in validateTokenHandler
+    const currentUserEmail = req.user.email;
+    const foundUser = await await User.findOne({ email: currentUserEmail });
+
+    // If user not found with the validated info
+    if(!foundUser) {
+        res.status(401);
+        throw new Error("User not found");
+    }
+
+    // Check user role and send respective roles data
+    if(foundUser.role === "admin") {
+        // Send admin specific data
+    } else {
+        // Send reader(or)author specific data
+    }
+
+    // DELETABLE CODE
+    res.status(200).json({ success: "true", message: "User Authentication Successful", user: foundUser });
+});
+
+module.exports = { registerUser, loginUser, currentUser };
