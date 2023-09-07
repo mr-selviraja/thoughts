@@ -1,6 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const User = require("../models/UserModel");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 // @desc Register a new user
 // @route POST /api/users/register
@@ -57,4 +58,45 @@ const registerUser = asyncHandler(async (req, res) => {
         }
 });
 
-module.exports = {registerUser};
+// @desc Login a user
+// @route POST /api/users/login
+// @access PUBLIC
+const loginUser = asyncHandler(async (req, res) => {
+    // Extract user data from the request body
+    const { email, password } = req.body;
+
+    // Validate the user login data
+    if(!email || !password) {
+        res.status(400);
+        throw new Error("Please fill all fields to login..!");
+    }
+
+    // Find the user using the provided email
+    const foundUser = await User.findOne({ email });
+
+    // Login the user, if the provided password and found user password are the same
+    if(foundUser && await(bcrypt.compare(password, foundUser.password))) {
+        // Generate an access token using jwt
+        const accessToken = jwt.sign(
+            {
+                user: {
+                    username: foundUser.name,
+                    email: foundUser.email,
+                    id: foundUser.id
+                }
+            },
+            process.env.ACCESS_TOKEN_SECRET,
+            { expiresIn: "15m" }
+        );
+
+        // Acknowledge the client about the successful login and send the access token
+        res.status(200).json({ message: "User Login Successful", accessToken });
+    }
+    // If no user found with given credentials
+    else {
+        res.status(401);
+        throw new Error("Invalid login credentials");
+    }
+});
+
+module.exports = { registerUser, loginUser };
