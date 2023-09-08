@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const BlacklistedToken = require("../models/BlacklistedTokenModel");
 const mongoose = require("mongoose");
+const cloudinaryUploadImg = require("../utilities/cloudinary");
 
 // @desc Register a new user
 // @route POST /api/users/register
@@ -204,6 +205,32 @@ const getUserProfile = asyncHandler(async (req, res) => {
     } });
 });
 
+// @desc Upload profile image
+// @route PUT /api/users/:userId/profile-img-upload
+// @access PRIVATE
+const profileImgUploadController = asyncHandler(async (req, res) => {
+    // Get the path to the image
+    const localPathToImg = `images/${req.file.fileName}`;
+
+    // Upload image to cloudinary
+    const uploadedImg = await cloudinaryUploadImg(localPathToImg);
+
+    // Fetch the current user info
+    const currentUserId = req.params.userId;
+
+    // Find user in the DB, using userId
+    const foundUser = await User.findByIdAndUpdate(
+        currentUserId,
+        {
+            img: uploadedImg.url
+        },
+        { new: true }
+    );
+
+    // Handle if user not found
+
+    res.json({ message: "Profile image uploaded", updatedUser: foundUser });
+});
 
 module.exports = { 
     registerUser, 
@@ -211,4 +238,5 @@ module.exports = {
     currentUser, 
     logoutUser, 
     getUserProfile,
+    profileImgUploadController
 };
