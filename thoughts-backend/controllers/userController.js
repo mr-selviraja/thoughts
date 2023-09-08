@@ -204,10 +204,11 @@ const getUserProfile = asyncHandler(async (req, res) => {
     } });
 });
 
+
 module.exports = { 
     registerUser, 
     loginUser, 
     currentUser, 
     logoutUser, 
-    getUserProfile 
+    getUserProfile,
 };

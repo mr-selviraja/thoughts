@@ -14,7 +14,6 @@ const validateToken = asyncHandler(async (req, res, next) => {
 
     // Ckeck the prensence and validation of auth header
     if(authHeader && authHeader.startsWith("Bearer")) {
-
         // Extract token from the auth header
         token = authHeader.split(" ")[1];
 
@@ -33,6 +32,12 @@ const validateToken = asyncHandler(async (req, res, next) => {
             if(err) {
                 res.status(400);
                 throw new Error("User is not Authorized");
+            }
+
+            // Ensure the token belongs to the user in the route parameter
+            if (req.params.userId && decodedInfo.user.id !== req.params.userId) {
+                res.status(401);
+                throw new Error("Unauthorized access to this user's data");
             }
 
             // Set the decoded info to req.user object, on successful verification of jwt token

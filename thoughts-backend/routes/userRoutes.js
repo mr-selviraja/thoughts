@@ -12,4 +12,5 @@ router.post("/logout", validateToken, logoutUser);
 
 router.get("/:userId", validateToken, getUserProfile);
 
+
 module.exports = router;
