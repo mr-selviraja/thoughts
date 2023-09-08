@@ -45,6 +45,7 @@ const errorHandler = (err, req, res, next) => {
             break;
             
         default:
+            if(err) console.log("ERROR: ", err.stack);
             console.log("No Error. Request served successfully..!");
             break;
     }

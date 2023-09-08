@@ -3,6 +3,7 @@ const User = require("../models/UserModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const BlacklistedToken = require("../models/BlacklistedTokenModel");
+const mongoose = require("mongoose");
 
 // @desc Register a new user
 // @route POST /api/users/register
@@ -112,26 +113,37 @@ const loginUser = asyncHandler(async (req, res) => {
     }
 });
 
+// @desc Get current user info
+// @route GET  /api/users/current
+// @access PRIVATE
 const currentUser = asyncHandler(async (req, res) => {
     // Fetch the user role from DB, using req.user which was set in validateTokenHandler
     const currentUserEmail = req.user.email;
-    const foundUser = await await User.findOne({ email: currentUserEmail });
+    const { name, username, role, interests } = await User.findOne({ email: currentUserEmail });
 
     // If user not found with the validated info
-    if(!foundUser) {
+    if(!username) {
         res.status(401);
         throw new Error("User not found");
     }
 
+    // Construct information to be sent to the client
+    const currentUserInfo = {
+        name,
+        username,
+        role,
+        interests
+    };
+
     // Check user role and send respective roles data
-    if(foundUser.role === "admin") {
+    if(role === "admin") {
         // Send admin specific data
     } else {
         // Send reader(or)author specific data
     }
 
     // DELETABLE CODE
-    res.status(200).json({ success: "true", message: "User Authentication Successful", user: foundUser });
+    res.status(200).json({ success: "true", message: "User Authentication Successful", user: currentUserInfo });
 });
 
 // @desc Logout current user
@@ -158,4 +170,44 @@ const logoutUser = asyncHandler(async (req, res) => {
     res.status(200).json({ message: "User Logout Successful" });
 });
 
-module.exports = { registerUser, loginUser, currentUser, logoutUser };
+// @desc Get current user profile
+// @route GET /api/users/:userId
+// @access PRIVATE
+const getUserProfile = asyncHandler(async (req, res) => {
+    // Extract the userId from req.params
+    const userId = req.params.userId;
+
+    // Validate that userId is a valid ObjectId (MongoDB ID)
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+        res.status(400);
+        throw new Error("Invalid user ID");
+    }
+
+    // Query the user by ID
+    const foundUser = await User.findById(userId);
+
+    // Check if the user exists
+    if (!foundUser) {
+        res.status(401);
+        throw new Error("User not found");
+    }
+
+    // Send current user object to client
+    res.status(200).json({ success: true, message: "User Authentication Successful", user: {
+        name: foundUser.name, 
+        username: foundUser.username, 
+        email: foundUser.email, 
+        role: foundUser.role, 
+        interests: foundUser.interests, 
+        bio: foundUser.bio,
+        img: foundUser.img
+    } });
+});
+
+module.exports = { 
+    registerUser, 
+    loginUser, 
+    currentUser, 
+    logoutUser, 
+    getUserProfile 
+};

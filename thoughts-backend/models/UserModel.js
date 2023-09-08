@@ -47,6 +47,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         default:  "Exploring the world of infinite possibilities, leaving a spark of love everywhere I go..!"
      },
+    img: {
+        type: String,
+        default: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Circle-icons-profile.svg/512px-Circle-icons-profile.svg.png?20160314153816"
+    },
     profilePicture: { type: String },                                    
     savedArticles: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Article' }],  
     lovedArticles: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Article' }],  
