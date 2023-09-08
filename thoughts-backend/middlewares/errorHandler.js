@@ -45,7 +45,7 @@ const errorHandler = (err, req, res, next) => {
             break;
             
         default:
-            if(err) res.status(statusCode).json({ 
+            if(err) res.status(500).json({ 
                 title: err.message, 
                 message: err.message, 
                 stackTrace: err.stack 

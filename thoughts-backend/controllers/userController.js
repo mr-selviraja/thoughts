@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 const BlacklistedToken = require("../models/BlacklistedTokenModel");
 const mongoose = require("mongoose");
 const cloudinaryUploadImg = require("../utilities/cloudinary");
+const fs = require("fs");
 
 // @desc Register a new user
 // @route POST /api/users/register
@@ -168,7 +169,7 @@ const logoutUser = asyncHandler(async (req, res) => {
     await BlacklistedToken.create({ token });
 
     // Respond with a success message
-    res.status(200).json({ message: "User Logout Successful" });
+    res.status(200).json({ success: true, message: "User Logout Successful" });
 });
 
 // @desc Get current user profile
@@ -229,7 +230,10 @@ const profileImgUploadController = asyncHandler(async (req, res) => {
 
     // Handle if user not found
 
-    res.json({ message: "Profile image uploaded", updatedUser: foundUser });
+    // Remove uploaded image from the server
+    fs.unlinkSync(localPathToImg);
+
+    res.json({ success: true, message: "Profile image uploaded", updatedUser: foundUser });
 });
 
 module.exports = { 
