@@ -219,7 +219,15 @@ const profileImgUploadController = asyncHandler(async (req, res) => {
     // Fetch the current user info
     const currentUserId = req.params.userId;
 
-    // Find user in the DB, using userId
+    console.log(currentUserId);
+
+    // Validate that userId is a valid MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(currentUserId)) {
+        res.status(400);
+        throw new Error("Invalid user ID");
+    }
+
+    // Find user in the DB, using userId and update
     const foundUser = await User.findByIdAndUpdate(
         currentUserId,
         {
@@ -229,11 +237,53 @@ const profileImgUploadController = asyncHandler(async (req, res) => {
     );
 
     // Handle if user not found
+    if(!foundUser) {
+        res.status(401);
+        throw new Error("User not found");
+    }
 
     // Remove uploaded image from the server
     fs.unlinkSync(localPathToImg);
 
     res.json({ success: true, message: "Profile image uploaded", updatedUser: foundUser });
+});
+
+
+const updateUserProfile = asyncHandler(async (req, res) => {
+    // Extract userId from user request
+    const userId = req.params.userId;
+
+    // Validate that userId is a valid MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      res.status(400);
+      throw new Error("Invalid user ID");
+    }
+
+    // Extract the updated user data from the request body
+    const {
+        name,
+        interests,
+        bio
+    } = req.body;
+
+    // Find user in the DB, using userId and update
+    const foundUser = await User.findByIdAndUpdate(
+        userId,
+        { $set: {
+            name,
+            interests,
+            bio
+        }},
+        { new: true }
+    );
+
+    // Handle if user not found
+    if(!foundUser) {
+        res.status(401);
+        throw new Error("User not found");
+    }
+
+    res.json({ success: true, message: "User Profile Updated", updatedUser: foundUser });
 });
 
 module.exports = { 
@@ -242,5 +292,6 @@ module.exports = {
     currentUser, 
     logoutUser, 
     getUserProfile,
-    profileImgUploadController
+    profileImgUploadController,
+    updateUserProfile
 };
